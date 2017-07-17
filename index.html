@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+  <head>
+
+  <link rel="stylesheet" type="text/css" href="css/style.css">
+    <script src="build/react.js"></script>
+    <script src="build/react-dom.js"></script>
+    <script src="build/browser.min.js"></script>
+    <script src="build/jquery.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/marked/0.3.6/marked.min.js"></script>
+  </head>
+
+  <body>
+  <div id="container">
+    
+  </div>
+  
+  <script type="text/babel">
+  var ListNode = React.createClass({
+  render: function() {
+  var profileLink = 'https://www.freecodecamp.com/' + this.props.info.username;
+
+    return (
+      <tr>
+        <td>{this.props.id}</td>
+        <td>
+          <img src={this.props.info.img} className="img-responsive" />
+          <span className="spann"><a className="aa" href={profileLink} target='_blank'>{this.props.info.username}</a></span>
+        </td>
+        <td>{this.props.info.recent}</td> 
+                <td>{this.props.info.alltime}</td>
+      </tr>
+      );
+  }
+});
+
+var UserList = React.createClass({
+  getInitialState: function(){
+    return {data: []};
+  },
+  ajaxRequest: function(){
+    $.ajax({
+      url: 'https://fcctop100.herokuapp.com/api/fccusers/top/' + this.props.order,
+      dataType: 'json',
+      cache: false,
+      success: function(result) {
+        this.setState({data: result});
+      }.bind(this),
+      error: function(xhr, status, err) {
+          console.error(this.props.url, status, err.toString());
+          }.bind(this)
+    });
+  },
+  componentDidMount: function() {
+      this.ajaxRequest();
+    },  
+  render: function() {
+  this.ajaxRequest();
+    var userNodes = this.state.data.map(function(user, idx){
+      return (
+        <ListNode info={user} id={idx + 1} key={idx} />
+      );
+    });
+    return (
+      <tbody>
+        {userNodes}
+      </tbody>
+    );
+  }
+});
+
+var LeaderBoard = React.createClass({
+  getInitialState: function () {
+    return {
+      order: 'recent'
+    }
+  },
+  componentDidUpdate: function() {
+      $(".hidden").hide(); 
+      $(".visible").show();
+    },  
+  render: function(){
+    var recentClass = '';
+      var allTimeClass = '';
+
+      if(this.state.order == 'recent') {
+          recentClass = 'visible';
+          allTimeClass = 'hidden';
+      }
+      else{
+          recentClass = 'hidden';
+          allTimeClass = 'visible';
+      } 
+      return (
+        <table className="table table-striped">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Camper Name</th>
+              <th><a className="ret" href="#" onClick={this.recentOrder}>Points Last 30 Days <span className={recentClass}>▼</span></a></th>
+              <th><a className="all" href="#" onClick={this.allTimeOrder}>All Time Points <span className={allTimeClass}>▼</span></a></th>
+            </tr>
+          </thead>
+          <UserList order={this.state.order} />
+        </table>
+      );
+  },
+  recentOrder: function () {
+      this.setState ({ order: 'recent' });
+      
+    },
+    allTimeOrder: function () {
+      this.setState ({ order: 'alltime' });
+    }
+});
+
+
+
+ReactDOM.render (<LeaderBoard />, document.getElementById ('container'));
+$(".hidden").hide();
+
+
+  </script>
+  </body>
+</html>
